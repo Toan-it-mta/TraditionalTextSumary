@@ -5,11 +5,10 @@ from __future__ import division, print_function, unicode_literals
 
 import json
 import rouge
-import unicodedata
 
 from sumy.parsers.plaintext import PlaintextParser
 from sumy.nlp.tokenizers import Tokenizer
-from sumy.summarizers.lsa import LsaSummarizer
+from sumy.summarizers.lex_rank import LexRankSummarizer
 # from sumy.summarizers.kl import KLSummarizer
 from sumy.utils import get_stop_words
 
@@ -64,10 +63,10 @@ def get_rouge_score(all_hypothesis, all_references):
         print()
 
 
-def lsa_summary(text, sentences_count):
+def lexrank_summary(text, sentences_count):
     parser = PlaintextParser.from_string(text, Tokenizer(LANGUAGE))
 
-    summarizer = LsaSummarizer()
+    summarizer = LexRankSummarizer()
     summarizer.stop_words = get_stop_words(LANGUAGE)
 
     result = ' '
@@ -104,16 +103,20 @@ if __name__ == '__main__':
     json_summary = read_data_from_json('./Data/summary_tokend.json')
 
     all_originnal = get_documents(json_original)
-    all_gold_summary = get_summarys(json_summary)
+    all_summary = get_summarys(json_summary)
     all_machine_summary = []
+    all_gold_summary = []
 
     i = 0
     while i < len(all_originnal):
         try:
-            summary = lsa_summary(all_originnal[i].replace('\n', ' '), all_gold_summary[i][1])
+            summary = lexrank_summary(all_originnal[i].replace('\n', ' '), all_summary[i][1])
             all_machine_summary.append(summary)
+            all_gold_summary = all_summary[i][0]
+            print(i)
             i += 1
         except:
+            print(i, 'Lỗi')
             continue
 
-    # get_rouge_score(all_machine_summary, [all_gold_summary[:][0]])
+    get_rouge_score(all_machine_summary, all_gold_summary)
